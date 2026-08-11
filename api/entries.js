@@ -1,150 +1,66 @@
-import { supabase } from "../lib/server.mjs";
+import { db, json, readBody, requireAdmin } from "../lib/server.mjs";
 
 export default async function handler(req, res) {
   try {
-    // GET — public/admin: retrieve tournament entry requests
     if (req.method === "GET") {
-      const { data, error } = await supabase
-        .from("tournament_entries")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      return res.status(200).json({
-        success: true,
-        entries: data || []
-      });
+      if (!requireAdmin(req, res)) return;
+      const rows = await db("tournament_entries?select=*,teams(team_name)&order=created_at.desc");
+      const entries = (rows || []).map(e => ({
+        ...e,
+        team_name: e.teams?.team_name || "Unknown Team"
+      }));
+      return json(res, { success: true, entries });
     }
 
-    // POST — player submits tournament entry/payment request
     if (req.method === "POST") {
-      const {
-        team_id,
-        tournament_name,
-        payer_name,
-        utr
-      } = req.body || {};
+      const body = await readBody(req);
+      const team_id = Number(body.team_id);
+      const tournament = body.tournament || body.tournament_name;
+      const payer_name = String(body.payer_name || "").trim();
+      const utr = String(body.utr || "").trim();
 
-      if (!team_id || !tournament_name || !payer_name || !utr) {
-        return res.status(400).json({
-          success: false,
-          error: "Team, tournament, payer name and UTR are required."
-        });
+      if (!team_id || !tournament || !payer_name || !utr) {
+        return json(res, { success: false, error: "Team, tournament, payer name and UTR are required." }, 400);
       }
 
-      const { data: existing } = await supabase
-        .from("tournament_entries")
-        .select("id")
-        .eq("team_id", team_id)
-        .eq("tournament_name", tournament_name)
-        .maybeSingle();
-
-      if (existing) {
-        return res.status(409).json({
-          success: false,
-          error: "This team has already requested entry for this tournament."
-        });
+      const existing = await db(`tournament_entries?team_id=eq.${team_id}&tournament=eq.${encodeURIComponent(tournament)}&select=id`);
+      if (existing.length) {
+        return json(res, { success: false, error: "This team has already requested entry for this tournament." }, 409);
       }
 
-      const { data, error } = await supabase
-        .from("tournament_entries")
-        .insert([
-          {
-            team_id,
-            tournament_name,
-            amount: 200,
-            payer_name,
-            utr,
-            status: "PENDING"
-          }
-        ])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return res.status(201).json({
-        success: true,
-        entry: data
+      const rows = await db("tournament_entries?select=*", {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ team_id, tournament, amount: 200, payer_name, utr, status: "PENDING" })
       });
+      return json(res, { success: true, entry: rows[0] }, 201);
     }
 
-    // PUT — admin approves/rejects an entry
+    if (!["PUT", "DELETE"].includes(req.method)) {
+      return json(res, { success: false, error: "Method not allowed." }, 405);
+    }
+    if (!requireAdmin(req, res)) return;
+
+    const body = await readBody(req);
+    if (!body.id) return json(res, { success: false, error: "Entry ID is required." }, 400);
+
     if (req.method === "PUT") {
-      const {
-        id,
-        status
-      } = req.body || {};
-
-      if (!id || !status) {
-        return res.status(400).json({
-          success: false,
-          error: "Entry ID and status are required."
-        });
+      const status = String(body.status || "").toUpperCase();
+      if (!["PENDING", "PAID", "REJECTED"].includes(status)) {
+        return json(res, { success: false, error: "Invalid entry status." }, 400);
       }
-
-      const allowedStatuses = ["PENDING", "APPROVED", "REJECTED"];
-
-      if (!allowedStatuses.includes(String(status).toUpperCase())) {
-        return res.status(400).json({
-          success: false,
-          error: "Invalid entry status."
-        });
-      }
-
-      const { data, error } = await supabase
-        .from("tournament_entries")
-        .update({
-          status: String(status).toUpperCase()
-        })
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return res.status(200).json({
-        success: true,
-        entry: data
+      const rows = await db(`tournament_entries?id=eq.${encodeURIComponent(body.id)}&select=*`, {
+        method: "PATCH",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ status })
       });
+      return json(res, { success: true, entry: rows[0] });
     }
 
-    // DELETE — admin removes an entry
-    if (req.method === "DELETE") {
-      const { id } = req.body || {};
-
-      if (!id) {
-        return res.status(400).json({
-          success: false,
-          error: "Entry ID is required."
-        });
-      }
-
-      const { error } = await supabase
-        .from("tournament_entries")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-
-      return res.status(200).json({
-        success: true,
-        message: "Entry deleted successfully."
-      });
-    }
-
-    return res.status(405).json({
-      success: false,
-      error: "Method not allowed."
-    });
-
+    await db(`tournament_entries?id=eq.${encodeURIComponent(body.id)}`, { method: "DELETE" });
+    return json(res, { success: true });
   } catch (error) {
-    console.error("Entries API error:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Server error."
-    });
+    console.error(error);
+    return json(res, { success: false, error: error.message || "Server error." }, error.status || 500);
   }
 }
