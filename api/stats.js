@@ -1,56 +1,33 @@
-import { supabase } from "../lib/server.mjs";
+import { db, json, requireAdmin } from "../lib/server.mjs";
 
 export default async function handler(req, res) {
   try {
-    if (req.method !== "GET") {
-      return res.status(405).json({
-        success: false,
-        error: "Method not allowed."
-      });
+    if (req.method === "GET") {
+      const [teams, entries, approved, pending] = await Promise.all([
+        db("teams?select=id"),
+        db("tournament_entries?select=id"),
+        db("tournament_entries?select=id&status=eq.PAID"),
+        db("tournament_entries?select=id&status=eq.PENDING")
+      ]);
+      return json(res, { success: true, stats: {
+        total_registered_teams: teams.length,
+        total_tournament_entries: entries.length,
+        approved_entries: approved.length,
+        pending_entries: pending.length
+      }});
     }
 
-    const { count: teamCount, error: teamError } = await supabase
-      .from("teams")
-      .select("*", { count: "exact", head: true });
+    if (req.method !== "PUT") return json(res, { success: false, error: "Method not allowed." }, 405);
+    if (!requireAdmin(req, res)) return;
 
-    if (teamError) throw teamError;
-
-    const { count: entryCount, error: entryError } = await supabase
-      .from("tournament_entries")
-      .select("*", { count: "exact", head: true });
-
-    if (entryError) throw entryError;
-
-    const { count: approvedCount, error: approvedError } = await supabase
-      .from("tournament_entries")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "APPROVED");
-
-    if (approvedError) throw approvedError;
-
-    const { count: pendingCount, error: pendingError } = await supabase
-      .from("tournament_entries")
-      .select("*", { count: "exact", head: true })
-      .eq("status", "PENDING");
-
-    if (pendingError) throw pendingError;
-
-    return res.status(200).json({
-      success: true,
-      stats: {
-        total_registered_teams: teamCount || 0,
-        total_tournament_entries: entryCount || 0,
-        approved_entries: approvedCount || 0,
-        pending_entries: pendingCount || 0
-      }
-    });
-
+    const body = await (async () => {
+      if (bodyCache) return bodyCache;
+      return {};
+    })();
   } catch (error) {
-    console.error("Stats API error:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Server error."
-    });
+    console.error(error);
+    return json(res, { success: false, error: error.message || "Server error." }, error.status || 500);
   }
 }
+
+let bodyCache = null;
