@@ -1,122 +1,65 @@
-import { supabase } from "../lib/server.mjs";
+import { db, json, readBody, requireAdmin } from "../lib/server.mjs";
 
 export default async function handler(req, res) {
   try {
     if (req.method === "GET") {
-      const { data, error } = await supabase
-        .from("teams")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      return res.status(200).json({
-        success: true,
-        teams: data || []
-      });
+      const teams = await db("teams?select=*&order=created_at.desc");
+      return json(res, { success: true, teams: teams || [] });
     }
 
-    if (req.method === "POST") {
-      const {
-        team_name,
-        captain_name,
-        captain_phone,
-        player1,
-        player2,
-        player3,
-        player4
-      } = req.body || {};
+    if (!["POST", "PUT", "DELETE"].includes(req.method)) {
+      return json(res, { success: false, error: "Method not allowed." }, 405);
+    }
 
-      if (!team_name || !captain_name || !captain_phone) {
-        return res.status(400).json({
-          success: false,
-          error: "Team name, captain name and phone number are required."
-        });
+    if (req.method !== "POST" && !requireAdmin(req, res)) return;
+
+    const body = await readBody(req);
+
+    if (req.method === "POST") {
+      const { name, team_name, captain, captain_name, phone, captain_phone, players = [] } = body;
+      const team = {
+        team_name: team_name || name,
+        captain: captain || captain_name,
+        phone: String(phone || captain_phone || "").replace(/\D/g, ""),
+        players: Array.isArray(players) ? players : [body.player1, body.player2, body.player3, body.player4].filter(Boolean)
+      };
+
+      if (!team.team_name || !team.captain || !team.phone || team.players.length !== 4) {
+        return json(res, { success: false, error: "Team name, captain, phone and all 4 players are required." }, 400);
       }
 
-      const { data, error } = await supabase
-        .from("teams")
-        .insert([
-          {
-            team_name,
-            captain_name,
-            captain_phone,
-            player1: player1 || "",
-            player2: player2 || "",
-            player3: player3 || "",
-            player4: player4 || ""
-          }
-        ])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return res.status(201).json({
-        success: true,
-        team: data
+      const rows = await db("teams?select=*&order=created_at.desc", {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify(team)
       });
+      return json(res, { success: true, team: rows[0] }, 201);
     }
 
     if (req.method === "PUT") {
-      const { id, ...updates } = req.body || {};
+      const { id, name, team_name, captain, phone, players } = body;
+      if (!id) return json(res, { success: false, error: "Team ID is required." }, 400);
 
-      if (!id) {
-        return res.status(400).json({
-          success: false,
-          error: "Team ID is required."
-        });
-      }
+      const updates = {};
+      if (name !== undefined || team_name !== undefined) updates.team_name = team_name ?? name;
+      if (captain !== undefined) updates.captain = captain;
+      if (phone !== undefined) updates.phone = String(phone).replace(/\D/g, "");
+      if (players !== undefined) updates.players = players;
 
-      const { data, error } = await supabase
-        .from("teams")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return res.status(200).json({
-        success: true,
-        team: data
+      const rows = await db(`teams?id=eq.${encodeURIComponent(id)}&select=*`, {
+        method: "PATCH",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify(updates)
       });
+      return json(res, { success: true, team: rows[0] });
     }
 
-    if (req.method === "DELETE") {
-      const { id } = req.body || {};
-
-      if (!id) {
-        return res.status(400).json({
-          success: false,
-          error: "Team ID is required."
-        });
-      }
-
-      const { error } = await supabase
-        .from("teams")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-
-      return res.status(200).json({
-        success: true,
-        message: "Team deleted successfully."
-      });
-    }
-
-    return res.status(405).json({
-      success: false,
-      error: "Method not allowed."
-    });
-
+    const { id } = body;
+    if (!id) return json(res, { success: false, error: "Team ID is required." }, 400);
+    await db(`teams?id=eq.${encodeURIComponent(id)}`, { method: "DELETE" });
+    return json(res, { success: true });
   } catch (error) {
-    console.error("Teams API error:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Server error."
-    });
+    console.error(error);
+    return json(res, { success: false, error: error.message || "Server error." }, error.status || 500);
   }
 }
