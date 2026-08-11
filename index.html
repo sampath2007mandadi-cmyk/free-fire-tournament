@@ -1,256 +1,39 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>NOVA SQUAD ARENA — Tournament Control</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<style>
-:root{--bg:#0d1117;--card:#151d27;--accent:#00d4ff;--secondary:#39e6c1;--text:#f4f7fb;--muted:#8d99a8;--border:rgba(255,255,255,.08);--danger:#ff4d67;--success:#35e58c}
-*{box-sizing:border-box;margin:0;padding:0}body{background:radial-gradient(circle at top right,rgba(0,212,255,.08),transparent 30%),var(--bg);color:var(--text);font-family:Inter,sans-serif;min-height:100vh}button,input,select{font:inherit}button{cursor:pointer}
-header{border-bottom:1px solid var(--border);background:rgba(13,17,23,.92);backdrop-filter:blur(14px);position:sticky;top:0;z-index:100}.header-inner{max-width:1250px;margin:auto;padding:24px 20px}.top-row{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.eyebrow{color:var(--accent);font-size:12px;font-weight:800;letter-spacing:3px;margin-bottom:5px}h1{font-family:"Bebas Neue";font-size:clamp(42px,8vw,72px);letter-spacing:2px;line-height:.95}.subtitle{color:var(--muted);margin-top:10px;font-size:14px}.mode-switch{display:flex;background:#080c11;padding:4px;border-radius:999px;border:1px solid var(--border)}.mode-btn{border:0;background:transparent;color:var(--muted);padding:9px 16px;border-radius:999px;font-weight:800;font-size:12px}.mode-btn.active{background:var(--accent);color:#001016}
-.nav{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:25px}.nav button{background:#111821;border:1px solid var(--border);color:var(--muted);padding:12px 10px;border-radius:11px;font-size:12px;font-weight:700}.nav button.active{background:var(--accent);color:#001018;border-color:var(--accent)}
-main{max-width:1250px;margin:auto;padding:35px 20px 80px}.section{display:none}.section.active{display:block}.section-header{margin-bottom:20px}.section-header h2{font-family:"Bebas Neue";font-size:38px;letter-spacing:1px}.section-header p{color:var(--muted);margin-top:5px;font-size:14px}
-.card{background:linear-gradient(145deg,rgba(21,29,39,.97),rgba(15,22,30,.97));border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 15px 50px rgba(0,0,0,.18)}.table-wrapper{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:700px}th{text-align:left;color:#657180;font-size:11px;text-transform:uppercase;letter-spacing:1px;padding:14px;border-bottom:1px solid var(--border)}td{padding:15px 14px;border-bottom:1px solid rgba(255,255,255,.05);font-size:14px}.team-name{font-weight:800}.rank{font-weight:900;color:var(--muted)}.points{color:var(--accent);font-weight:900;font-size:16px}.top-gold{background:rgba(255,193,7,.1)}.top-silver{background:rgba(190,200,215,.08)}.top-bronze{background:rgba(205,127,50,.1)}
-.form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px}.form-group{display:flex;flex-direction:column;gap:7px}.form-group.full{grid-column:1/-1}label{color:#c5cdd7;font-size:12px;font-weight:700}input,select{width:100%;background:#0c1218;color:white;border:1px solid var(--border);border-radius:10px;padding:12px 14px;outline:none}input:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(0,212,255,.08)}
-.primary-btn{margin-top:20px;width:100%;border:0;background:var(--accent);color:#001018;padding:14px;border-radius:11px;font-weight:900}.secondary-btn{border:1px solid var(--border);background:#111821;color:white;padding:11px 15px;border-radius:10px;font-weight:700}.small-btn{border:1px solid var(--border);background:#202a35;color:white;padding:8px 11px;border-radius:8px;font-size:11px;font-weight:800;margin-right:5px}.danger-btn{border:0;background:var(--danger);color:white;padding:8px 11px;border-radius:8px;font-size:11px;font-weight:800}.approve-btn{border:0;background:var(--success);color:#06130d;padding:8px 11px;border-radius:8px;font-size:11px;font-weight:900;margin-right:5px}.reject-btn{border:0;background:var(--danger);color:white;padding:8px 11px;border-radius:8px;font-size:11px;font-weight:800}
-.admin-grid{display:grid;grid-template-columns:1fr;gap:20px}.admin-heading{color:var(--secondary);font-size:14px;font-weight:900;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:15px}.security-card{border-color:rgba(57,230,193,.18)}.security-card .primary-btn{background:var(--secondary)}
-.empty{text-align:center;color:var(--muted);padding:35px}.notice{background:rgba(0,212,255,.07);border:1px solid rgba(0,212,255,.15);padding:14px;border-radius:10px;color:var(--muted);font-size:12px;line-height:1.6;margin-top:15px}
-.qr-layout{display:grid;grid-template-columns:330px 1fr;gap:28px;align-items:start}.qr-card{text-align:center;background:#0b1016;border:1px solid var(--border);border-radius:16px;padding:18px}.qr-card img{width:100%;max-width:290px;aspect-ratio:1;object-fit:contain;border-radius:10px;background:#111}.fee{font-size:34px;font-weight:900;color:var(--accent);margin:8px 0}.pay-steps{color:var(--muted);font-size:13px;line-height:1.8;margin-top:10px}.status{display:inline-block;padding:6px 10px;border-radius:999px;font-size:10px;font-weight:900;text-transform:uppercase}.status.pending{background:rgba(255,193,7,.12);color:#ffc107}.status.paid{background:rgba(53,229,140,.12);color:var(--success)}.status.rejected{background:rgba(255,77,103,.12);color:var(--danger)}
-.sub-tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}.sub-tab{border:1px solid var(--border);background:#111821;color:var(--muted);border-radius:10px;padding:11px 15px;font-size:13px;font-weight:700}.sub-tab.active{background:rgba(0,212,255,.12);border-color:rgba(0,212,255,.45);color:var(--accent)}.registration-step{display:none}.registration-step.active{display:block}
-.login-overlay{position:fixed;inset:0;background:rgba(3,6,10,.94);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}.login-box{width:100%;max-width:420px;background:#121a23;border:1px solid var(--border);border-radius:18px;padding:30px;box-shadow:0 30px 100px rgba(0,0,0,.5)}.login-logo{color:var(--accent);font-family:"Bebas Neue";font-size:35px;letter-spacing:2px;margin-bottom:5px}.login-box h2{margin-bottom:8px}.login-box p{color:var(--muted);font-size:13px;margin-bottom:22px}.error{color:var(--danger);font-size:12px;margin-top:10px;display:none}.toast{position:fixed;bottom:25px;right:25px;background:#17212c;border:1px solid var(--border);padding:14px 18px;border-radius:10px;color:white;font-size:13px;font-weight:700;transform:translateY(100px);opacity:0;transition:.3s;z-index:1000}.toast.show{transform:translateY(0);opacity:1}
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:400;align-items:center;justify-content:center;padding:20px}.modal-box{background:#121a23;border:1px solid var(--border);border-radius:18px;padding:25px;width:100%;max-width:700px;max-height:90vh;overflow:auto}.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}.close{border:0;background:none;color:var(--muted);font-size:25px}
-@media(max-width:900px){.nav{grid-template-columns:repeat(3,1fr)}.qr-layout{grid-template-columns:1fr}.qr-card{max-width:400px;margin:auto}}@media(max-width:650px){.top-row{flex-direction:column}.nav{grid-template-columns:repeat(2,1fr)}.form-grid{grid-template-columns:1fr}.form-group.full{grid-column:auto}.card{padding:18px}main{padding-left:14px;padding-right:14px}}
-</style>
-</head>
-<body>
-
-<div class="login-overlay" id="loginOverlay">
- <div class="login-box">
-  <div class="login-logo">NOVA SQUAD</div><h2>Admin Access</h2>
-  <p>Enter the administrator password to access Tournament Control.</p>
-  <div class="form-group"><label>PASSWORD</label><input type="password" id="loginPassword" placeholder="Enter admin password"></div>
-  <button class="primary-btn" onclick="loginAdmin()">ENTER CONTROL PANEL</button><div class="error" id="loginError">Incorrect password.</div>
- </div>
-</div>
-
-<div class="modal" id="teamModal"><div class="modal-box">
- <div class="modal-head"><h2 id="modalTitle">EDIT TEAM</h2><button class="close" onclick="closeTeamModal()">×</button></div>
- <form id="teamEditForm"><input type="hidden" id="editIndex"><div class="form-grid">
-  <div class="form-group full"><label>TEAM NAME</label><input id="editTeamName" required></div>
-  <div class="form-group"><label>CAPTAIN</label><input id="editCaptain" required></div>
-  <div class="form-group"><label>PHONE</label><input id="editPhone" maxlength="10" required></div>
-  <div class="form-group"><label>PLAYER 1</label><input id="editPlayer1" required></div><div class="form-group"><label>PLAYER 2</label><input id="editPlayer2" required></div>
-  <div class="form-group"><label>PLAYER 3</label><input id="editPlayer3" required></div><div class="form-group"><label>PLAYER 4</label><input id="editPlayer4" required></div>
- </div><button class="primary-btn" type="submit">SAVE TEAM</button></form>
-</div></div>
-
-<header><div class="header-inner"><div class="top-row">
- <div><div class="eyebrow">SQUAD BATTLE ROYALE</div><h1>TOURNAMENT CONTROL</h1><div class="subtitle">NOVA SQUAD ARENA • Global Tournament Management</div></div>
- <div class="mode-switch"><button class="mode-btn active" id="viewMode" onclick="setMode('view')">VIEW</button><button class="mode-btn" id="editMode" onclick="setMode('edit')">EDIT</button></div>
-</div>
-<nav class="nav">
- <button class="active" onclick="showSection('leaderboard',this)">Global Leaderboard</button><button onclick="showSection('registration',this)">Registration</button><button onclick="showSection('setup',this)">Setup Groups</button><button onclick="showSection('groupA',this)">Group A</button><button onclick="showSection('groupB',this)">Group B</button><button onclick="showSection('finals',this)">Finals</button><button onclick="showSection('admin',this)">Admin Panel</button>
-</nav></div></header>
-
-<main>
-<section id="leaderboard" class="section active">
- <div class="section-header"><h2>GLOBAL LEADERBOARD</h2><p>Accumulates points across ALL tournaments. Total Registered Teams: <strong id="teamCount">0</strong></p></div>
- <div class="card"><div class="table-wrapper"><table><thead><tr><th>#</th><th>Team Name</th><th>Played</th><th>Kills</th><th>Total Points</th></tr></thead><tbody id="leaderboardBody"></tbody></table></div></div>
-</section>
-
-<section id="registration" class="section">
- <div class="section-header"><h2>TEAM & TOURNAMENT REGISTRATION</h2><p>Register a permanent team once, then pay ₹200 to enter a specific tournament.</p></div>
- <div class="sub-tabs"><button class="sub-tab active" onclick="registrationTab('step1',this)">1. Register Permanent Team</button><button class="sub-tab" onclick="registrationTab('step2',this)">2. Request Tournament Entry</button></div>
- <div id="step1" class="registration-step active"><div class="card"><form id="registrationForm"><div class="form-grid">
-  <div class="form-group full"><label>TEAM NAME</label><input id="teamName" placeholder="Example: Phoenix Esports" required></div>
-  <div class="form-group"><label>CAPTAIN NAME</label><input id="captainName" placeholder="In-game name" required></div>
-  <div class="form-group"><label>CAPTAIN CONTACT NUMBER</label><input id="captainPhone" placeholder="10-digit number" maxlength="10" required></div>
-  <div class="form-group"><label>PLAYER 1</label><input id="player1" required></div><div class="form-group"><label>PLAYER 2</label><input id="player2" required></div><div class="form-group"><label>PLAYER 3</label><input id="player3" required></div><div class="form-group"><label>PLAYER 4</label><input id="player4" required></div>
- </div><button class="primary-btn" type="submit">REGISTER PERMANENT TEAM</button></form></div></div>
-
- <div id="step2" class="registration-step"><div class="card"><div class="qr-layout">
-  <div class="qr-card"><div class="admin-heading">PHONEPE PAYMENT</div><img src="phonepe-qr.jpeg" alt="PhonePe payment QR code"><div class="fee">₹200</div><div style="color:var(--muted);font-size:12px">Tournament entry fee per team</div><div class="pay-steps">1. Scan the QR<br>2. Pay exactly ₹200<br>3. Copy your UTR / transaction ID<br>4. Submit the entry request</div></div>
-  <div><div class="admin-heading">REQUEST TOURNAMENT ENTRY</div>
-   <form id="entryForm"><div class="form-grid">
-    <div class="form-group full"><label>SELECT REGISTERED TEAM</label><select id="entryTeam" required><option value="">Choose your team</option></select></div>
-    <div class="form-group full"><label>TOURNAMENT</label><select id="entryTournament" required><option value="NOVA SQUAD CUP #1">NOVA SQUAD CUP #1</option></select></div>
-    <div class="form-group"><label>PAYER NAME</label><input id="payerName" placeholder="Name used in PhonePe" required></div>
-    <div class="form-group"><label>UTR / TRANSACTION ID</label><input id="utr" placeholder="Enter payment reference" required></div>
-   </div><button class="primary-btn" type="submit">SUBMIT ₹200 PAYMENT REQUEST</button></form>
-   <div class="notice">Your entry will remain <strong>Pending Verification</strong> until the tournament admin confirms the ₹200 payment in PhonePe using the submitted UTR / Transaction ID. <strong>No screenshot is required.</strong></div>
-  </div>
- </div></div></div>
-</section>
-
-<section id="setup" class="section"><div class="section-header"><h2>SETUP GROUPS</h2><p>Assign approved teams to tournament groups.</p></div><div class="card"><div class="empty">Approved tournament entries will be available here for Group A / Group B assignment.</div></div></section>
-<section id="groupA" class="section"><div class="section-header"><h2>GROUP A</h2><p>Group A standings.</p></div><div class="card"><div class="empty">Group A matches will appear here.</div></div></section>
-<section id="groupB" class="section"><div class="section-header"><h2>GROUP B</h2><p>Group B standings.</p></div><div class="card"><div class="empty">Group B matches will appear here.</div></div></section>
-<section id="finals" class="section"><div class="section-header"><h2>FINALS</h2><p>Championship standings.</p></div><div class="card"><div class="empty">Finals scoreboard will appear here.</div></div></section>
-
-<section id="admin" class="section">
- <div class="section-header"><h2>ADMIN PANEL</h2><p>Manage teams, payments, leaderboard and administrator security.</p></div>
- <div class="admin-grid">
-  <div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:15px;flex-wrap:wrap"><div class="admin-heading" style="margin:0">Manage Global Teams</div><button class="secondary-btn" onclick="openAddTeam()">+ ADD TEAM</button></div>
-   <div class="table-wrapper" style="margin-top:18px"><table><thead><tr><th>Team</th><th>Captain</th><th>Phone</th><th>Players</th><th>Actions</th></tr></thead><tbody id="adminTeamBody"></tbody></table></div>
-  </div>
-  <div class="card"><div class="admin-heading">Tournament Payment Requests</div><div class="notice">Check the ₹200 payment in your PhonePe account against the UTR before approving.</div>
-   <div class="table-wrapper" style="margin-top:18px"><table><thead><tr><th>Team</th><th>Tournament</th><th>Amount</th><th>Payer</th><th>UTR</th><th>Status</th><th>Action</th></tr></thead><tbody id="entriesBody"></tbody></table></div>
-  </div>
-  <div class="card"><div class="admin-heading">Edit Leaderboard</div><div class="table-wrapper"><table><thead><tr><th>Team</th><th>Played</th><th>Kills</th><th>Points</th><th>Save</th></tr></thead><tbody id="statsBody"></tbody></table></div></div>
-  <div class="card security-card"><div class="admin-heading">Admin Security</div><h3>Change Admin Password</h3><p style="color:var(--muted);font-size:13px;margin:8px 0 18px">Change the password used to access Tournament Control.</p><div class="form-grid"><div class="form-group"><label>CURRENT PASSWORD</label><input type="password" id="currentPassword"></div><div class="form-group"><label>NEW PASSWORD</label><input type="password" id="newPassword"></div><div class="form-group full"><label>CONFIRM NEW PASSWORD</label><input type="password" id="confirmPassword"></div></div><button class="primary-btn" onclick="changePassword()">CHANGE PASSWORD</button><div class="notice">Central database: teams, entries and leaderboard data are stored in Supabase.</div></div>
-  <div class="card"><div class="admin-heading">Session</div><button class="secondary-btn" onclick="logoutAdmin()">LOG OUT</button></div>
- </div>
-</section>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NOVA SQUAD — Tournament Control</title><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet"><style>
+:root{--bg:#0d1117;--card:#151d27;--line:#ffffff16;--text:#f4f7fb;--muted:#8d99a8;--a:#00d4ff;--g:#35e58c;--r:#ff4d67;--gold:#ffc857}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 90% 0,#00d4ff12,transparent 32%),var(--bg);color:var(--text);font:14px Inter,Arial}button,input,select{font:inherit}button{cursor:pointer}.wrap{max-width:1200px;margin:auto;padding:0 18px}.head{padding:24px 0 16px}.header{position:sticky;top:0;z-index:5;background:#0d1117ed;backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}.top{display:flex;justify-content:space-between;gap:20px}.eyebrow{color:var(--a);font-size:11px;font-weight:900;letter-spacing:3px}h1,h2,h3{font-family:'Bebas Neue';letter-spacing:1px;margin:0}h1{font-size:72px;line-height:.9}.muted{color:var(--muted)}.tag{margin-top:9px;color:var(--muted);font-size:12px}.mode{display:flex;height:max-content;background:#080c11;border:1px solid var(--line);padding:4px;border-radius:99px}.mode button{border:0;background:none;color:var(--muted);padding:8px 14px;border-radius:99px;font-weight:800;font-size:11px}.mode .on{background:var(--a);color:#001018}.nav{display:grid;grid-template-columns:repeat(7,1fr);gap:7px;margin-top:22px}.nav button{background:#111821;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:11px 6px;font-size:11px;font-weight:800}.nav .active{background:var(--a);color:#001018;border-color:var(--a)}main{padding:32px 0 70px}.section{display:none}.section.active{display:block}.section h2{font-size:40px}.sub{margin:5px 0 18px;color:var(--muted);font-size:12px}.card{background:var(--card);border:1px solid var(--line);border-radius:15px;padding:21px}.table{overflow:auto}table{width:100%;border-collapse:collapse;min-width:650px}th{text-align:left;color:#6f7b8a;font-size:10px;letter-spacing:1px;padding:12px;border-bottom:1px solid var(--line)}td{padding:13px 12px;border-bottom:1px solid #fff1;font-size:13px}.team{font-weight:800}.pts{color:var(--a);font-weight:900}.top1{background:#ffc85712}.top2{background:#c8d0db0b}.top3{background:#cd7f3210}.grid{display:grid;grid-template-columns:1fr 1fr;gap:13px}.full{grid-column:1/-1}.field{display:flex;flex-direction:column;gap:6px}.field label{font-size:10px;font-weight:800;color:#c8d0d9}.field input,.field select{background:#0b1117;border:1px solid var(--line);border-radius:9px;padding:12px;color:white;outline:0}.field input:focus,.field select:focus{border-color:var(--a)}.primary,.secondary{border-radius:9px;padding:12px 15px;font-weight:900}.primary{border:0;background:var(--a);color:#001018}.secondary{border:1px solid var(--line);background:#111821;color:white}.danger{background:var(--r);border:0;color:white}.success{background:var(--g);border:0;color:#00150b}.tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}.tab{border:1px solid var(--line);background:#111821;color:var(--muted);border-radius:9px;padding:10px 13px;font-weight:800}.tab.active{color:var(--a);border-color:#00d4ff66}.step{display:none}.step.active{display:block}.pay{display:grid;grid-template-columns:300px 1fr;gap:22px}.qr{text-align:center;background:#090e13;border:1px solid var(--line);border-radius:14px;padding:15px}.qr img{width:100%;max-width:250px;aspect-ratio:1;object-fit:contain;background:white;border-radius:8px}.fee{font-size:32px;color:var(--a);font-weight:900;margin:6px}.note{padding:11px;background:#00d4ff0c;border:1px solid #00d4ff22;border-radius:9px;color:var(--muted);font-size:11px;line-height:1.5;margin-top:10px}.login{position:fixed;inset:0;background:#000b;backdrop-filter:blur(8px);display:none;align-items:center;justify-content:center;padding:18px;z-index:20}.login.show{display:flex}.loginbox{max-width:420px;width:100%;background:#141d27;border:1px solid var(--line);border-radius:16px;padding:24px}.close{float:right;border:0;background:none;color:var(--muted);font-size:24px}.admin{display:grid;gap:18px}.badge{padding:5px 9px;border-radius:99px;font-size:10px;font-weight:900}.pending{background:#ffc85715;color:var(--gold)}.paid{background:#35e58c15;color:var(--g)}.rejected{background:#ff4d6715;color:var(--r)}.hidden{display:none!important}.toast{position:fixed;right:18px;bottom:18px;background:#18232e;border:1px solid var(--line);padding:12px 15px;border-radius:9px;font-weight:800;font-size:12px;display:none;z-index:30}.toast.show{display:block}.empty{text-align:center;color:var(--muted);padding:30px}@media(max-width:900px){h1{font-size:55px}.nav{grid-template-columns:repeat(3,1fr)}.pay{grid-template-columns:1fr}.qr{max-width:330px;margin:auto}}@media(max-width:600px){.top{flex-direction:column}.nav{grid-template-columns:repeat(2,1fr)}.grid{grid-template-columns:1fr}.full{grid-column:auto}}
+</style></head><body>
+<header class="header"><div class="wrap head"><div class="top"><div><div class="eyebrow">SQUAD BATTLE ROYALE</div><h1>TOURNAMENT CONTROL</h1><div class="tag">NOVA SQUAD ARENA • Public tournament portal</div></div><div class="mode"><button id="view" class="on">VIEW</button><button id="edit">EDIT</button></div></div><nav class="nav" id="nav"><button class="active" data-s="leaderboard">Global Leaderboard</button><button data-s="registration">Registration</button><button data-s="setup">Setup Groups</button><button data-s="groupA">Group A</button><button data-s="groupB">Group B</button><button data-s="finals">Finals</button><button data-s="admin">Admin Panel</button></nav></div></header>
+<main class="wrap">
+<section id="leaderboard" class="section active"><h2>GLOBAL LEADERBOARD</h2><p class="sub">Accumulates points across ALL tournaments. Total Registered Teams: <b id="count">0</b></p><div class="card table"><table><thead><tr><th>#</th><th>Team Name</th><th>Played</th><th>Kills</th><th>Total Points</th></tr></thead><tbody id="board"><tr><td colspan="5" class="empty">Loading...</td></tr></tbody></table></div></section>
+<section id="registration" class="section"><h2>REGISTRATION</h2><p class="sub">Register your permanent team once, then pay ₹200 for a specific tournament.</p><div class="tabs"><button class="tab active" data-step="reg">1. Register Permanent Team</button><button class="tab" data-step="pay">2. Request Tournament Entry</button></div><div id="reg" class="step active"><div class="card"><form id="teamForm"><div class="grid"><div class="field full"><label>TEAM NAME</label><input id="team" required></div><div class="field"><label>CAPTAIN / IN-GAME NAME</label><input id="captain" required></div><div class="field"><label>CONTACT (+91)</label><input id="phone" maxlength="10" placeholder="10-digit number" required></div><div class="field"><label>PLAYER 1</label><input id="p1" required></div><div class="field"><label>PLAYER 2</label><input id="p2" required></div><div class="field"><label>PLAYER 3</label><input id="p3" required></div><div class="field"><label>PLAYER 4</label><input id="p4" required></div></div><button class="primary" style="width:100%;margin-top:18px">REGISTER PERMANENT TEAM</button></form></div></div><div id="pay" class="step"><div class="card pay"><div class="qr"><b>PHONEPE PAYMENT</b><img src="phonepe-qr.jpeg" alt="PhonePe QR"><div class="fee">₹200</div><span class="muted">Tournament entry per team</span><div class="note">Scan → pay exactly ₹200 → copy the UTR/transaction ID. No payment screenshot is required.</div></div><div><b>REQUEST TOURNAMENT ENTRY</b><form id="entryForm" style="margin-top:15px"><div class="grid"><div class="field full"><label>REGISTERED TEAM</label><select id="entryTeam" required><option value="">Choose team</option></select></div><div class="field full"><label>TOURNAMENT</label><input id="tournament" value="NOVA SQUAD CUP #1" required></div><div class="field"><label>PAYER NAME</label><input id="payer" required></div><div class="field"><label>UTR / TRANSACTION ID</label><input id="utr" required></div></div><button class="primary" style="width:100%;margin-top:18px">SUBMIT ₹200 ENTRY REQUEST</button></form></div></div></div></section>
+<section id="setup" class="section"><h2>SETUP GROUPS</h2><p class="sub">Group assignment is controlled by the administrator.</p><div class="card"><h3 style="font-size:34px">GROUP SETUP</h3><p class="muted">Approve tournament entries first. Group management can then be published from the admin controls.</p></div></section>
+<section id="groupA" class="section"><h2>GROUP A</h2><p class="sub">Live standings.</p><div class="card table"><table><thead><tr><th>Team</th><th>Played</th><th>Kills</th><th>Points</th></tr></thead><tbody><tr><td colspan="4" class="empty">No teams assigned yet.</td></tr></tbody></table></div></section>
+<section id="groupB" class="section"><h2>GROUP B</h2><p class="sub">Live standings.</p><div class="card table"><table><thead><tr><th>Team</th><th>Played</th><th>Kills</th><th>Points</th></tr></thead><tbody><tr><td colspan="4" class="empty">No teams assigned yet.</td></tr></tbody></table></div></section>
+<section id="finals" class="section"><h2>FINALS</h2><p class="sub">Finalists published by the administrator.</p><div class="card empty">Finals board is waiting for publication.</div></section>
+<section id="admin" class="section"><h2>ADMIN PANEL</h2><p class="sub">Public view for everyone; editing requires your admin password.</p><div id="locked" class="card"><h3 style="font-size:34px">🔐 ADMIN ACCESS</h3><p class="muted">Only the tournament administrator can change teams, payments, scores and password.</p><button class="primary" onclick="openLogin()">ADMIN LOGIN</button></div><div id="adminContent" class="admin hidden"><div class="card"><h3 style="font-size:27px;color:var(--a)">MANAGE GLOBAL TEAMS</h3><div class="table"><table><thead><tr><th>Team</th><th>Captain</th><th>Phone</th><th>Players</th><th>Action</th></tr></thead><tbody id="teams"></tbody></table></div></div><div class="card"><h3 style="font-size:27px;color:var(--a)">PAYMENT REQUESTS</h3><div class="table"><table><thead><tr><th>Team</th><th>Tournament</th><th>Amount</th><th>UTR</th><th>Status</th><th>Action</th></tr></thead><tbody id="entries"></tbody></table></div></div><div class="card"><h3 style="font-size:27px;color:var(--a)">LEADERBOARD EDITOR</h3><div class="table"><table><thead><tr><th>Team</th><th>Played</th><th>Kills</th><th>Points</th><th>Save</th></tr></thead><tbody id="scores"></tbody></table></div></div><div class="card"><h3 style="font-size:27px;color:var(--a)">CHANGE ADMIN PASSWORD</h3><form id="passwordForm"><div class="grid"><div class="field"><label>CURRENT PASSWORD</label><input id="oldpass" type="password" required></div><div class="field"><label>NEW PASSWORD</label><input id="newpass" type="password" minlength="8" required></div></div><button class="primary" style="margin-top:15px">CHANGE PASSWORD</button></form><button class="secondary" style="margin-top:10px" onclick="logout()">LOG OUT</button></div></div></section>
 </main>
-<div class="toast" id="toast"></div><footer style="max-width:1250px;margin:-45px auto 30px;padding:0 20px;color:#596574;font-size:11px;text-align:center">NOVA SQUAD ARENA • Tournament Control • Manual PhonePe verification • ₹200/team</footer>
-
+<div class="login" id="login"><div class="loginbox"><button class="close" onclick="closeLogin()">×</button><h2>ADMIN LOGIN</h2><p class="muted">Your password is checked on the server.</p><form id="loginForm"><div class="field"><label>ADMIN PASSWORD</label><input id="pass" type="password" required></div><button class="primary" style="width:100%;margin-top:15px">ENTER CONTROL PANEL</button><div id="err" style="color:var(--r);font-size:12px;margin-top:10px"></div></form></div></div><div class="toast" id="toast"></div>
 <script>
-let teams=[], leaderboard=[], entries=[], adminToken=localStorage.getItem("novaAdminToken")||"";
-const $=id=>document.getElementById(id);
-
-async function api(path, options={}) {
-  const headers={"Content-Type":"application/json",...(options.headers||{})};
-  if(adminToken) headers.Authorization=`Bearer ${adminToken}`;
-  const res=await fetch(path,{...options,headers});
-  let data={}; try{data=await res.json()}catch{}
-  if(!res.ok) throw new Error(data.error||`Request failed (${res.status})`);
-  return data;
-}
-function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
-function toast(m){const t=$("toast");t.textContent=m;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2800)}
-function setMode(mode){$("viewMode").classList.toggle("active",mode==="view");$("editMode").classList.toggle("active",mode==="edit");toast(mode==="edit"?"Admin editing is available in Admin Panel.":"View mode enabled.")}
-function showSection(id,btn){
-  if(id==="admin"&&!adminToken){openLogin();return}
-  document.querySelectorAll(".section").forEach(x=>x.classList.remove("active"));
-  $(id).classList.add("active");
-  document.querySelectorAll(".nav button").forEach(x=>x.classList.remove("active"));
-  btn.classList.add("active");
-  if(id==="registration")populateEntryTeams();
-  if(id==="admin")loadAdmin();
-}
-function registrationTab(id,btn){
-  document.querySelectorAll(".registration-step").forEach(x=>x.classList.remove("active"));
-  $(id).classList.add("active");
-  document.querySelectorAll(".sub-tab").forEach(x=>x.classList.remove("active"));btn.classList.add("active");
-  if(id==="step2")populateEntryTeams();
-}
-function openLogin(){$("loginOverlay").style.display="flex";$("loginPassword").focus()}
-function closeLogin(){$("loginOverlay").style.display="none";$("loginPassword").value="";$("loginError").style.display="none"}
-async function loginAdmin(){
-  try{
-    const r=await api("/api/auth/login",{method:"POST",body:JSON.stringify({password:$("loginPassword").value})});
-    adminToken=r.token;localStorage.setItem("novaAdminToken",adminToken);closeLogin();toast("Admin access granted.");
-    const adminBtn=[...document.querySelectorAll(".nav button")].find(x=>x.textContent.includes("Admin Panel"));
-    showSection("admin",adminBtn);
-  }catch(e){$("loginError").textContent=e.message;$("loginError").style.display="block"}
-}
-function logoutAdmin(){adminToken="";localStorage.removeItem("novaAdminToken");$("loginOverlay").style.display="none";toast("Logged out.");showSection("leaderboard",document.querySelector(".nav button"))}
-
-async function loadPublic(){
-  try{
-    const [t,l]=await Promise.all([api("/api/teams"),api("/api/leaderboard")]);
-    teams=t.teams||[];leaderboard=l.leaderboard||[];renderLeaderboard();populateEntryTeams();
-  }catch(e){toast("Could not load tournament data: "+e.message)}
-}
-async function loadAdmin(){
-  try{
-    const [t,l,e]=await Promise.all([api("/api/teams"),api("/api/leaderboard"),api("/api/entries")]);
-    teams=t.teams||[];leaderboard=l.leaderboard||[];entries=e.entries||[];
-    renderAdminTeams();renderStats();renderEntries();renderLeaderboard();populateEntryTeams();
-  }catch(e){
-    if(/Unauthorized/i.test(e.message)){adminToken="";localStorage.removeItem("novaAdminToken");openLogin()}
-    else toast("Admin data error: "+e.message)
-  }
-}
-function renderLeaderboard(){
-  const b=$("leaderboardBody");b.innerHTML="";
-  const s=[...leaderboard].sort((a,b)=>b.points-a.points);
-  if(!s.length)b.innerHTML='<tr><td colspan="5" class="empty">No teams registered yet.</td></tr>';
-  s.forEach((t,i)=>{const tr=document.createElement("tr");tr.className=i===0?"top-gold":i===1?"top-silver":i===2?"top-bronze":"";
-    tr.innerHTML=`<td class="rank">${i+1}</td><td class="team-name">${esc(t.name)}</td><td>${t.played}</td><td>${t.kills}</td><td class="points">${t.points}</td>`;b.appendChild(tr)});
-  $("teamCount").textContent=teams.length;
-}
-function populateEntryTeams(){
-  const s=$("entryTeam");if(!s)return;s.innerHTML='<option value="">Choose your team</option>';
-  teams.forEach(t=>{const o=document.createElement("option");o.value=t.id;o.textContent=t.team_name;s.appendChild(o)});
-}
-async function registerTeam(e){
-  e.preventDefault();
-  const team={name:$("teamName").value.trim(),captain:$("captainName").value.trim(),phone:$("captainPhone").value.replace(/\D/g,""),players:[1,2,3,4].map(i=>$("player"+i).value.trim())};
-  try{await api("/api/teams",{method:"POST",body:JSON.stringify(team)});$("registrationForm").reset();await loadPublic();toast("Team registered successfully.");}
-  catch(err){toast(err.message)}
-}
-async function submitEntry(e){
-  e.preventDefault();
-  const body={team_id:Number($("entryTeam").value),tournament:$("entryTournament").value,payer_name:$("payerName").value.trim(),utr:$("utr").value.trim()};
-  try{await api("/api/entries",{method:"POST",body:JSON.stringify(body)});$("entryForm").reset();toast("₹200 payment request submitted. Awaiting admin verification.");}
-  catch(err){toast(err.message)}
-}
-function openAddTeam(){openTeamModal(-1)}
-function openTeamModal(i){
-  $("modalTitle").textContent=i===-1?"ADD TEAM":"EDIT TEAM";$("editIndex").value=i;
-  if(i===-1){["editTeamName","editCaptain","editPhone","editPlayer1","editPlayer2","editPlayer3","editPlayer4"].forEach(id=>$(id).value="")}
-  else{const t=teams[i];$("editTeamName").value=t.team_name;$("editCaptain").value=t.captain;$("editPhone").value=t.phone;for(let n=1;n<=4;n++)$("editPlayer"+n).value=t.players?.[n-1]||""}
-  $("teamModal").style.display="flex";
-}
-function closeTeamModal(){$("teamModal").style.display="none"}
-async function saveEditedTeam(e){
-  e.preventDefault();const i=Number($("editIndex").value);
-  const body={id:i===-1?null:teams[i].id,name:$("editTeamName").value.trim(),captain:$("editCaptain").value.trim(),phone:$("editPhone").value.replace(/\D/g,""),players:[1,2,3,4].map(n=>$("editPlayer"+n).value.trim())};
-  try{
-    if(i===-1)await api("/api/teams",{method:"POST",body:JSON.stringify(body)});
-    else await api("/api/teams",{method:"PUT",body:JSON.stringify(body)});
-    closeTeamModal();await loadAdmin();toast(i===-1?"Team added.":"Team updated.");
-  }catch(err){toast(err.message)}
-}
-async function deleteTeam(i){
-  if(!confirm(`Delete ${teams[i].team_name}? This removes the team and its leaderboard record.`))return;
-  try{await api("/api/teams",{method:"DELETE",body:JSON.stringify({id:teams[i].id})});await loadAdmin();toast("Team deleted.")}
-  catch(err){toast(err.message)}
-}
-function renderAdminTeams(){
-  const b=$("adminTeamBody");b.innerHTML="";
-  if(!teams.length){b.innerHTML='<tr><td colspan="5" class="empty">No registered teams yet.</td></tr>';return}
-  teams.forEach((t,i)=>{const tr=document.createElement("tr");tr.innerHTML=`<td class="team-name">${esc(t.team_name)}</td><td>${esc(t.captain)}</td><td>+91 ${esc(t.phone)}</td><td>${(t.players||[]).map(esc).join(", ")}</td><td><button class="small-btn" onclick="openTeamModal(${i})">EDIT</button><button class="danger-btn" onclick="deleteTeam(${i})">DELETE</button></td>`;b.appendChild(tr)})
-}
-function renderStats(){
-  const b=$("statsBody");b.innerHTML="";
-  if(!leaderboard.length){b.innerHTML='<tr><td colspan="5" class="empty">No teams available.</td></tr>';return}
-  leaderboard.forEach((t,i)=>{const tr=document.createElement("tr");tr.innerHTML=`<td class="team-name">${esc(t.name)}</td><td><input id="played_${i}" type="number" min="0" value="${t.played}"></td><td><input id="kills_${i}" type="number" min="0" value="${t.kills}"></td><td><input id="points_${i}" type="number" min="0" value="${t.points}"></td><td><button class="small-btn" onclick="saveStats(${i})">SAVE</button></td>`;b.appendChild(tr)})
-}
-async function saveStats(i){
-  try{await api("/api/stats",{method:"PUT",body:JSON.stringify({team_id:leaderboard[i].team_id,played:$("played_"+i).value,kills:$("kills_"+i).value,points:$("points_"+i).value})});await loadAdmin();toast("Leaderboard updated.")}
-  catch(e){toast(e.message)}
-}
-function renderEntries(){
-  const b=$("entriesBody");b.innerHTML="";
-  if(!entries.length){b.innerHTML='<tr><td colspan="7" class="empty">No tournament payment requests yet.</td></tr>';return}
-  entries.forEach(e=>{const tr=document.createElement("tr"),cls=e.status==="PENDING"?"pending":e.status==="PAID"?"paid":"rejected";
-    const action=e.status==="PENDING"?`<button class="approve-btn" onclick="setEntryStatus(${e.id},'PAID')">APPROVE</button><button class="reject-btn" onclick="setEntryStatus(${e.id},'REJECTED')">REJECT</button>`:`<span style="color:var(--muted);font-size:11px">No action</span>`;
-    tr.innerHTML=`<td class="team-name">${esc(e.team_name)}</td><td>${esc(e.tournament)}</td><td class="points">₹${e.amount}</td><td>${esc(e.payer_name)}</td><td>${esc(e.utr)}</td><td><span class="status ${cls}">${e.status}</span></td><td>${action}</td>`;b.appendChild(tr)
-  })
-}
-async function setEntryStatus(id,status){
-  try{await api("/api/entries",{method:"PUT",body:JSON.stringify({id,status})});await loadAdmin();toast(status==="PAID"?"Entry approved.":"Entry rejected.")}
-  catch(e){toast(e.message)}
-}
-async function changePassword(){
-  try{
-    const current=$("currentPassword").value, next=$("newPassword").value, confirm=$("confirmPassword").value;
-    if(next!==confirm) throw new Error("New passwords do not match.");
-    await api("/api/auth/password",{method:"PUT",body:JSON.stringify({currentPassword:current,newPassword:next})});
-    $("currentPassword").value=$("newPassword").value=$("confirmPassword").value="";
-    toast("Password changed successfully.");
-  }catch(e){toast(e.message)}
-}
-$("teamEditForm").addEventListener("submit",saveEditedTeam);
-$("registrationForm").addEventListener("submit",registerTeam);
-$("entryForm").addEventListener("submit",submitEntry);
-$("loginPassword").addEventListener("keydown",e=>{if(e.key==="Enter")loginAdmin()});
-window.addEventListener("DOMContentLoaded",async()=>{ $("loginOverlay").style.display="none"; await loadPublic(); });
-</script>
-</body>
-</html>
+const $=x=>document.getElementById(x);let token=localStorage.getItem('nova_token')||'',teams=[],board=[],entries=[];const esc=x=>String(x??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function toast(x){$('toast').textContent=x;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),2800)}
+async function api(url,opt={}){let h={'Content-Type':'application/json',...(opt.headers||{})};if(token)h.Authorization='Bearer '+token;let r=await fetch(url,{...opt,headers:h}),d={};try{d=await r.json()}catch{}if(!r.ok)throw Error(d.error||'Request failed');return d}
+function go(id,b){document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));$(id).classList.add('active');document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('active'));b?.classList.add('active');if(id==='admin'&&token)loadAdmin()}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{go(b.dataset.s,b);if(b.dataset.s==='admin'&&!token)openLogin()});$('edit').onclick=()=>token?go('admin',document.querySelector('[data-s=admin]')):openLogin();document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.step').forEach(x=>x.classList.remove('active'));b.classList.add('active');$(b.dataset.step).classList.add('active');if(b.dataset.step==='pay')fillTeams()});
+async function publicLoad(){try{let[t,l]=await Promise.all([api('/api/teams'),api('/api/leaderboard')]);teams=t.teams||[];board=l.leaderboard||[];$('count').textContent=teams.length;renderBoard();fillTeams()}catch(e){toast(e.message)}}
+function renderBoard(){$('board').innerHTML=board.length?board.map((x,i)=>`<tr class="${i<3?'top'+(i+1):''}"><td>${i+1}</td><td class="team">${esc(x.name)}</td><td>${x.played}</td><td>${x.kills}</td><td class="pts">${x.points}</td></tr>`).join(''):'<tr><td colspan="5" class="empty">No registered teams yet.</td></tr>'}
+function fillTeams(){$('entryTeam').innerHTML='<option value="">Choose team</option>'+teams.map(t=>`<option value="${t.id}">${esc(t.team_name)}</option>`).join('')}
+$('teamForm').onsubmit=async e=>{e.preventDefault();try{await api('/api/teams',{method:'POST',body:JSON.stringify({team_name:$('team').value,captain:$('captain').value,phone:$('phone').value,players:[$('p1').value,$('p2').value,$('p3').value,$('p4').value]})});e.target.reset();await publicLoad();document.querySelector('[data-step=pay]').click();toast('Team registered.')}catch(x){toast(x.message)}};
+$('entryForm').onsubmit=async e=>{e.preventDefault();try{await api('/api/entries',{method:'POST',body:JSON.stringify({team_id:$('entryTeam').value,tournament:$('tournament').value,payer_name:$('payer').value,utr:$('utr').value})});e.target.reset();toast('Entry submitted. Admin will verify the payment.')}catch(x){toast(x.message)}};
+function openLogin(){$('login').classList.add('show');$('pass').focus()}function closeLogin(){$('login').classList.remove('show');$('err').textContent=''}
+$('loginForm').onsubmit=async e=>{e.preventDefault();try{let d=await api('/api/auth/login',{method:'POST',body:JSON.stringify({password:$('pass').value})});token=d.token;localStorage.setItem('nova_token',token);closeLogin();$('locked').classList.add('hidden');$('adminContent').classList.remove('hidden');go('admin',document.querySelector('[data-s=admin]'));await loadAdmin();toast('Admin access granted.')}catch(x){$('err').textContent=x.message}};
+async function loadAdmin(){try{let[t,l,e]=await Promise.all([api('/api/teams'),api('/api/leaderboard'),api('/api/entries')]);teams=t.teams||[];board=l.leaderboard||[];entries=e.entries||[];$('count').textContent=teams.length;renderBoard();fillTeams();renderTeams();renderEntries();renderScores()}catch(x){if(x.message.toLowerCase().includes('auth'))logout();else toast(x.message)}}
+function renderTeams(){$('teams').innerHTML=teams.length?teams.map(t=>`<tr><td class="team">${esc(t.team_name)}</td><td>${esc(t.captain)}</td><td>+91 ${esc(t.phone)}</td><td>${(t.players||[]).map(esc).join(', ')}</td><td><button class="secondary" onclick="editTeam('${t.id}')">Edit</button> <button class="secondary danger" onclick="deleteTeam('${t.id}')">Delete</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No registered teams.</td></tr>'}
+function renderEntries(){$('entries').innerHTML=entries.length?entries.map(e=>`<tr><td class="team">${esc(e.team_name)}</td><td>${esc(e.tournament)}</td><td>₹${e.amount}</td><td>${esc(e.utr)}</td><td><span class="badge ${e.status==='PAID'?'paid':e.status==='REJECTED'?'rejected':'pending'}">${e.status}</span></td><td>${e.status!=='PAID'?`<button class="secondary success" onclick="entryStatus('${e.id}','PAID')">Approve</button>`:''} ${e.status!=='REJECTED'?`<button class="secondary danger" onclick="entryStatus('${e.id}','REJECTED')">Reject</button>`:''}</td></tr>`).join(''):'<tr><td colspan="6" class="empty">No entry requests.</td></tr>'}
+function renderScores(){$('scores').innerHTML=board.length?board.map(x=>`<tr><td class="team">${esc(x.name)}</td><td><input id="pl${x.team_id}" value="${x.played}" style="width:70px"></td><td><input id="ki${x.team_id}" value="${x.kills}" style="width:70px"></td><td><input id="po${x.team_id}" value="${x.points}" style="width:70px"></td><td><button class="secondary" onclick="saveScore('${x.team_id}')">Save</button></td></tr>`).join(''):'<tr><td colspan="5" class="empty">No leaderboard records.</td></tr>'}
+async function entryStatus(id,status){try{await api('/api/entries',{method:'PUT',body:JSON.stringify({id,status})});await loadAdmin();toast(status==='PAID'?'Payment approved.':'Entry rejected.')}catch(x){toast(x.message)}}
+async function saveScore(id){try{await api('/api/leaderboard',{method:'PUT',body:JSON.stringify({team_id:id,played:$('pl'+id).value,kills:$('ki'+id).value,points:$('po'+id).value})});await loadAdmin();toast('Leaderboard updated.')}catch(x){toast(x.message)}}
+async function editTeam(id){let t=teams.find(x=>String(x.id)===String(id));if(!t)return;let n=prompt('Team name:',t.team_name);if(n===null)return;let c=prompt('Captain:',t.captain);if(c===null)return;let p=prompt('Phone:',t.phone);if(p===null)return;let ps=prompt('Four players, comma separated:',(t.players||[]).join(', '));if(ps===null)return;try{await api('/api/teams',{method:'PUT',body:JSON.stringify({id,team_name:n,captain:c,phone:p,players:ps.split(',').map(x=>x.trim()).filter(Boolean)})});await loadAdmin();toast('Team updated.')}catch(x){toast(x.message)}}
+async function deleteTeam(id){if(!confirm('Delete this team, its scores and its tournament entries?'))return;try{await api('/api/teams',{method:'DELETE',body:JSON.stringify({id})});await loadAdmin();toast('Team deleted.')}catch(x){toast(x.message)}}
+$('passwordForm').onsubmit=async e=>{e.preventDefault();try{await api('/api/auth/password',{method:'PUT',body:JSON.stringify({currentPassword:$('oldpass').value,newPassword:$('newpass').value})});e.target.reset();toast('Admin password changed.')}catch(x){toast(x.message)}};
+function logout(){token='';localStorage.removeItem('nova_token');$('adminContent').classList.add('hidden');$('locked').classList.remove('hidden');go('leaderboard',document.querySelector('[data-s=leaderboard]'));toast('Logged out.')}
+publicLoad();if(token){$('locked').classList.add('hidden');$('adminContent').classList.remove('hidden')}
+</script></body></html>
