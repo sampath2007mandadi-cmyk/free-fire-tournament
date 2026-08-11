@@ -1,146 +1,55 @@
-import { supabase } from "../lib/server.mjs";
+import { db, json, readBody, requireAdmin } from "../lib/server.mjs";
 
 export default async function handler(req, res) {
   try {
-    // GET — public leaderboard
     if (req.method === "GET") {
-      const { data, error } = await supabase
-        .from("leaderboard")
-        .select("*")
-        .order("total_points", { ascending: false });
-
-      if (error) throw error;
-
-      return res.status(200).json({
-        success: true,
-        leaderboard: data || []
-      });
+      const rows = await db("leaderboard?select=team_id,played,kills,points,teams(team_name)&order=points.desc");
+      const leaderboard = (rows || []).map(r => ({
+        team_id: r.team_id,
+        name: r.teams?.team_name || "Unknown Team",
+        played: r.played,
+        kills: r.kills,
+        points: r.points
+      }));
+      return json(res, { success: true, leaderboard });
     }
 
-    // POST — create a leaderboard record
+    if (!["POST", "PUT", "DELETE"].includes(req.method)) {
+      return json(res, { success: false, error: "Method not allowed." }, 405);
+    }
+    if (!requireAdmin(req, res)) return;
+
+    const body = await readBody(req);
+
     if (req.method === "POST") {
-      const {
-        team_id,
-        team_name,
-        played,
-        kills,
-        total_points
-      } = req.body || {};
-
-      if (!team_name) {
-        return res.status(400).json({
-          success: false,
-          error: "Team name is required."
-        });
-      }
-
-      const { data, error } = await supabase
-        .from("leaderboard")
-        .insert([
-          {
-            team_id: team_id || null,
-            team_name,
-            played: Number(played) || 0,
-            kills: Number(kills) || 0,
-            total_points: Number(total_points) || 0
-          }
-        ])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return res.status(201).json({
-        success: true,
-        leaderboard: data
+      if (!body.team_id) return json(res, { success: false, error: "Team ID is required." }, 400);
+      const rows = await db("leaderboard?select=*&", {
+        method: "POST",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify({ team_id: Number(body.team_id), played: Number(body.played) || 0, kills: Number(body.kills) || 0, points: Number(body.points) || 0 })
       });
+      return json(res, { success: true, leaderboard: rows[0] }, 201);
     }
 
-    // PUT — admin edits leaderboard
     if (req.method === "PUT") {
-      const {
-        id,
-        team_name,
-        played,
-        kills,
-        total_points
-      } = req.body || {};
-
-      if (!id) {
-        return res.status(400).json({
-          success: false,
-          error: "Leaderboard record ID is required."
-        });
-      }
-
+      if (!body.team_id) return json(res, { success: false, error: "Team ID is required." }, 400);
       const updates = {};
-
-      if (team_name !== undefined) {
-        updates.team_name = team_name;
-      }
-
-      if (played !== undefined) {
-        updates.played = Number(played) || 0;
-      }
-
-      if (kills !== undefined) {
-        updates.kills = Number(kills) || 0;
-      }
-
-      if (total_points !== undefined) {
-        updates.total_points = Number(total_points) || 0;
-      }
-
-      const { data, error } = await supabase
-        .from("leaderboard")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      return res.status(200).json({
-        success: true,
-        leaderboard: data
+      if (body.played !== undefined) updates.played = Math.max(0, Number(body.played) || 0);
+      if (body.kills !== undefined) updates.kills = Math.max(0, Number(body.kills) || 0);
+      if (body.points !== undefined) updates.points = Math.max(0, Number(body.points) || 0);
+      const rows = await db(`leaderboard?team_id=eq.${encodeURIComponent(body.team_id)}&select=*`, {
+        method: "PATCH",
+        headers: { Prefer: "return=representation" },
+        body: JSON.stringify(updates)
       });
+      return json(res, { success: true, leaderboard: rows[0] });
     }
 
-    // DELETE — admin removes leaderboard record
-    if (req.method === "DELETE") {
-      const { id } = req.body || {};
-
-      if (!id) {
-        return res.status(400).json({
-          success: false,
-          error: "Leaderboard record ID is required."
-        });
-      }
-
-      const { error } = await supabase
-        .from("leaderboard")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-
-      return res.status(200).json({
-        success: true,
-        message: "Leaderboard record deleted successfully."
-      });
-    }
-
-    return res.status(405).json({
-      success: false,
-      error: "Method not allowed."
-    });
-
+    if (!body.team_id) return json(res, { success: false, error: "Team ID is required." }, 400);
+    await db(`leaderboard?team_id=eq.${encodeURIComponent(body.team_id)}`, { method: "DELETE" });
+    return json(res, { success: true });
   } catch (error) {
-    console.error("Leaderboard API error:", error);
-
-    return res.status(500).json({
-      success: false,
-      error: error.message || "Server error."
-    });
+    console.error(error);
+    return json(res, { success: false, error: error.message || "Server error." }, error.status || 500);
   }
 }
